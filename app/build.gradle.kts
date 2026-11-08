@@ -43,9 +43,24 @@ val bundledHindiFontLicenses = listOf(
     Triple("glegoo", "Glegoo-OFL.txt", "4446|838d39e3aabb5e99b6163cd3ce4d1cb585444ef6")
 )
 val downloadHindiFonts = tasks.register("downloadHindiFonts") {
+    inputs.property("googleFontsCommit", googleFontsCommit)
+    inputs.property(
+        "bundledHindiFonts",
+        bundledHindiFonts.joinToString("\n") { "${it.first}|${it.second}|${it.third}" }
+    )
+    inputs.property(
+        "bundledHindiFontLicenses",
+        bundledHindiFontLicenses.joinToString("\n") { "${it.first}|${it.second}|${it.third}" }
+    )
     outputs.dir(hindiFontAssets)
     doLast {
         val root = hindiFontAssets.get().asFile
+        if (root.exists() && !root.deleteRecursively()) {
+            throw GradleException("Could not clean generated Hindi font assets.")
+        }
+        if (!root.mkdirs() && !root.isDirectory) {
+            throw GradleException("Could not create generated Hindi font assets.")
+        }
         fun download(path: String, target: java.io.File, size: Long, expectedSha: String) {
             fun blobSha(bytes: ByteArray): String {
                 val digest = MessageDigest.getInstance("SHA-1")

@@ -1,9 +1,9 @@
 package com.arjun.gander
 
 import android.content.Context
-import androidx.core.content.edit
 import android.graphics.Typeface
 import android.net.Uri
+import androidx.core.content.edit
 import java.io.BufferedInputStream
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -36,7 +36,12 @@ internal object HindiFontStore {
     }
 
     data class ImportResult(var imported: Int = 0, var duplicates: Int = 0, var invalid: Int = 0, var ignored: Int = 0)
-    private data class State(val result: ImportResult, val hashes: MutableSet<String>, var bytes: Long = 0)
+    private data class State(
+        val result: ImportResult,
+        val hashes: MutableSet<String>,
+        var bytes: Long = 0,
+        var fontEntries: Int = 0
+    )
 
     private val builtIns = listOf(
         Font("Noto Sans Devanagari", "Noto Sans Devanagari", "Everyday Hindi · Variable weight", "NotoSansDevanagari-VF.ttf"),
@@ -94,7 +99,10 @@ internal object HindiFontStore {
         val input = context.contentResolver.openInputStream(uri)
             ?: throw IllegalArgumentException("The selected ZIP could not be opened.")
         val state = newState(context)
-        input.use { extract(context, it, state, 0) }
+        input.use {
+            val archive = readLimited(it, MAX_ZIP_BYTES)
+            extract(context, ByteArrayInputStream(archive), state, 0)
+        }
         return state.result
     }
 
@@ -117,8 +125,9 @@ internal object HindiFontStore {
                 val name = entry.name.substringAfterLast('/').substringAfterLast('\\')
                 when (name.substringAfterLast('.', "").lowercase(Locale.ROOT)) {
                     "ttf", "otf" -> {
-                        require(state.result.imported + state.result.duplicates < MAX_FONTS) {
-                            "This pack contains more than $MAX_FONTS fonts."
+                        state.fontEntries++
+                        require(state.fontEntries <= MAX_FONTS) {
+                            "This pack contains more than $MAX_FONTS font files."
                         }
                         val bytes = readLimited(zip, MAX_FONT_BYTES)
                         addBytes(state, bytes.size.toLong())
