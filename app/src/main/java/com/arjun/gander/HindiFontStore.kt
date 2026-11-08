@@ -1,6 +1,7 @@
 package com.arjun.gander
 
 import android.content.Context
+import androidx.core.content.edit
 import android.graphics.Typeface
 import android.net.Uri
 import java.io.BufferedInputStream
@@ -64,8 +65,9 @@ internal object HindiFontStore {
             .getString("default_family", "Noto Sans Devanagari") ?: "Noto Sans Devanagari"
 
     fun setDefaultFamily(context: Context, family: String) {
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-            .putString("default_family", family).apply()
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit {
+            putString("default_family", family)
+        }
     }
 
     fun typeface(context: Context, font: Font): Typeface? {
