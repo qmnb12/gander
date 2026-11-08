@@ -25,6 +25,9 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.children
+import androidx.media3.common.PlaybackException
+import androidx.media3.exoplayer.ExoPlaybackException
+import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -304,19 +307,27 @@ class OverChromeTest {
     /** Text under a track's name, which the player cannot read and gives up on. */
     @Test
     fun aTrackThatWillNotPlayGetsItsTitleBarBackAboveTheCard() {
-        val viewer = open(FixtureProvider.uriNamed("plain.txt", "broken.mp3"))
-        // The player reads on a thread of its own and reports back on the main one, slower on a
-        // machine doing other work, so the wait is long and ends as soon as it has given up
-        val deadline = System.nanoTime() + 20_000_000_000L
+        val viewer = open(FixtureProvider.uriNamed("tone.wav", "broken.mp3"))
+        val player = viewer.player.player as ExoPlayer
+        // Inject the same asynchronous decoder failure used by PlayerErrorTest. This keeps this
+        // chrome test about the title bar, rather than depending on Robolectric's audio extractor
+        // to reject a text fixture within an arbitrary wall-clock timeout.
+        player.createMessage { _, _ ->
+            throw ExoPlaybackException.createForUnexpected(
+                IllegalStateException("Decoder gave out"), PlaybackException.ERROR_CODE_DECODING_FAILED
+            )
+        }.send()
+
+        val deadline = System.nanoTime() + 10_000_000_000L
         while (System.nanoTime() < deadline) {
             if (viewer.container.children.any { it is WebView }) {
                 assertThat(viewer.toolbar.parent).isSameInstanceAs(viewer.root)
                 assertThat(viewer.playerScreen!!.trackChrome).isNull()
                 return
             }
-            Thread.sleep(50)
+            Thread.sleep(10)
             shadowOf(Looper.getMainLooper()).idle()
         }
-        error("the player never gave up on broken.mp3")
+        error("the player did not report the injected decoder failure")
     }
 }
