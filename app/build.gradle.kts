@@ -87,7 +87,6 @@ val downloadHindiFonts = tasks.register("downloadHindiFonts") {
     }
 }
 
-
 extensions.configure<com.android.build.api.dsl.ApplicationExtension> {
     sourceSets.getByName("main").assets.directories.add(hindiFontAssets.get().asFile.absolutePath)
     namespace = "com.arjun.gander"
@@ -158,8 +157,6 @@ extensions.configure<com.android.build.api.dsl.ApplicationExtension> {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-
-
 
     buildFeatures {
         // IPdfRenderer.aidl is how Gander talks to the isolated PDF renderer, and AGP 8
