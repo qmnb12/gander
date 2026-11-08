@@ -182,6 +182,30 @@ subfolder of Downloads instead.
 
 To build it yourself you need JDK 21+ and the Android SDK (platform 36). These are
 build requirements only. The installed app runs on Android 8.0 (API 26) and up.
+The Gradle wrapper pins Gradle 8.14.6, which is compatible with the Android Gradle
+Plugin used here. Use the wrapper rather than forcing a newer Gradle 9.x installation.
+
+### Code On The Go (Android)
+
+1. Open the cloned repository as a Gradle project in Code On The Go.
+2. Set the project JDK to 21 and make sure Android SDK Platform 36 and Build Tools
+   are installed in the IDE's SDK manager.
+3. Let Gradle sync finish. The first build needs internet access to fetch the
+   verified Google Fonts files and Gradle dependencies; the installed app itself
+   remains offline and does not request INTERNET permission.
+4. In the Gradle task list, run `app > Tasks > build > assembleDebug`, or use
+   the terminal:
+
+   ```sh
+   ./gradlew --no-daemon :app:assembleDebug
+   ```
+
+The installable APK is written to
+`app/build/outputs/apk/debug/app-debug.apk`. Debug uses the application ID
+`com.arjun.gander.debug`, so it can be installed alongside the regular app.
+No release keystore, signing password or release build is needed for testing.
+
+### Desktop terminal
 
 ```sh
 ./gradlew assembleDebug        # installable debug build
