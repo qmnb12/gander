@@ -36,7 +36,7 @@ def test_unicode_runs_use_the_preferred_font_and_leave_latin_text_alone(page):
     )
 
     assert runs == ["हिन्दी", "नमस्ते"]
-    assert all(family.startswith('"Mukta"') for family in families)
+    assert all(family.split(",", 1)[0].strip().strip("\\\"'") == "Mukta" for family in families)
     assert page.locator("#container").text_content() == "English हिन्दी and नमस्ते"
 
 
@@ -52,7 +52,7 @@ def test_selected_font_precedes_the_embedded_font_in_presentation_svg(page):
         "node => node.style.getPropertyPriority('font-family')"
     )
 
-    assert family.startswith('"Mukta"')
+    assert family.split(",", 1)[0].strip().strip("\\\"'") == "Mukta"
     assert priority == "important"
 
 
