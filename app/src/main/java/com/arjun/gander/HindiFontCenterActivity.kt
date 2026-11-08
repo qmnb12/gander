@@ -105,8 +105,10 @@ class HindiFontCenterActivity : AppCompatActivity() {
             }
             runOnUiThread {
                 outcome.onSuccess {
-                    status.text = "Imported " + it.imported + " · Duplicates " + it.duplicates +
-                        " · Invalid " + it.invalid + " · Other files " + it.ignored
+                    status.text = getString(
+                        R.string.hindi_font_import_summary,
+                        it.imported, it.duplicates, it.invalid, it.ignored
+                    )
                     renderFonts()
                     Toast.makeText(this, "Hindi font library updated", Toast.LENGTH_SHORT).show()
                 }.onFailure {
@@ -127,7 +129,10 @@ class HindiFontCenterActivity : AppCompatActivity() {
         }
         val selected = HindiFontStore.defaultFamily(this)
         val count = TextView(this).apply {
-            text = fonts.size.toString() + " fonts · " + HindiFontStore.bundledFonts().size + " built-in Unicode"
+            text = getString(
+                R.string.hindi_font_count,
+                fonts.size, HindiFontStore.bundledFonts().size
+            )
             setTextColor(0xFF9EABB3.toInt())
             textSize = 12f
             setPadding(0, dp(10), 0, dp(10))
@@ -144,7 +149,9 @@ class HindiFontCenterActivity : AppCompatActivity() {
             results.addView(card, params)
 
             val name = TextView(this).apply {
-                text = font.title + if (font.bundled) " · Built-in" else " · Imported"
+                text = font.title + getString(
+                    if (font.bundled) R.string.hindi_font_built_in else R.string.hindi_font_imported
+                )
                 textSize = 15f
                 setTextColor(0xFFF4F6F7.toInt())
                 typeface = Typeface.DEFAULT_BOLD
@@ -161,7 +168,7 @@ class HindiFontCenterActivity : AppCompatActivity() {
             card.addView(sample)
 
             val detail = TextView(this).apply {
-                text = font.description + "  (" + font.family + ")"
+                text = getString(R.string.hindi_font_detail, font.description, font.family)
                 textSize = 11f
                 setTextColor(0xFF9EABB3.toInt())
             }
@@ -176,20 +183,20 @@ class HindiFontCenterActivity : AppCompatActivity() {
                 isEnabled = font.family != selected
                 setOnClickListener {
                     HindiFontStore.setDefaultFamily(this@HindiFontCenterActivity, font.family)
-                    status.text = "Preferred Hindi font: " + font.family
+                    status.text = getString(R.string.hindi_font_preferred, font.family)
                     renderFonts()
                 }
             }
             actions.addView(use, LinearLayout.LayoutParams(0, dp(44), 1f))
             if (!font.bundled) {
                 val remove = MaterialButton(this).apply {
-                    text = "Remove"
+                    text = getString(R.string.hindi_font_remove)
                     setOnClickListener {
                         if (HindiFontStore.remove(font)) {
                             if (HindiFontStore.defaultFamily(this@HindiFontCenterActivity) == font.family) {
                                 HindiFontStore.setDefaultFamily(this@HindiFontCenterActivity, "Noto Sans Devanagari")
                             }
-                            status.text = "Removed " + font.title
+                            status.text = getString(R.string.hindi_font_removed, font.title)
                             renderFonts()
                         }
                     }
@@ -202,7 +209,7 @@ class HindiFontCenterActivity : AppCompatActivity() {
         }
         if (fonts.size > visibleLimit) {
             val more = MaterialButton(this).apply {
-                text = "Show more fonts"
+                text = getString(R.string.hindi_font_show_more)
                 setOnClickListener {
                     visibleLimit = (visibleLimit + 30).coerceAtMost(fonts.size)
                     renderFonts()
@@ -212,7 +219,7 @@ class HindiFontCenterActivity : AppCompatActivity() {
         }
         if (fonts.isEmpty()) {
             val empty = TextView(this).apply {
-                text = "No fonts match this search."
+                text = getString(R.string.hindi_font_no_match)
                 setTextColor(0xFF9EABB3.toInt())
                 textSize = 13f
             }
