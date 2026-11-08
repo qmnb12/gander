@@ -107,10 +107,10 @@ internal object HindiFontStore {
     }
 
     private fun newState(context: Context): State {
-        val hashes = fontDir(context).listFiles().orEmpty()
+        val existing = fontDir(context).listFiles().orEmpty()
             .filter { it.isFile && it.extension.lowercase(Locale.ROOT) in setOf("ttf", "otf") }
-            .mapNotNull { runCatching { hash(it.readBytes()) }.getOrNull() }.toMutableSet()
-        return State(ImportResult(), hashes)
+        val hashes = existing.mapNotNull { runCatching { hash(it.readBytes()) }.getOrNull() }.toMutableSet()
+        return State(ImportResult(), hashes, fontEntries = existing.size)
     }
 
     private fun extract(context: Context, input: java.io.InputStream, state: State, depth: Int) {
@@ -125,10 +125,6 @@ internal object HindiFontStore {
                 val name = entry.name.substringAfterLast('/').substringAfterLast('\\')
                 when (name.substringAfterLast('.', "").lowercase(Locale.ROOT)) {
                     "ttf", "otf" -> {
-                        state.fontEntries++
-                        require(state.fontEntries <= MAX_FONTS) {
-                            "This pack contains more than $MAX_FONTS font files."
-                        }
                         val bytes = readLimited(zip, MAX_FONT_BYTES)
                         addBytes(state, bytes.size.toLong())
                         if (isFont(bytes)) save(context, bytes, name, state) else state.result.invalid++
@@ -175,15 +171,22 @@ internal object HindiFontStore {
 
     private fun save(context: Context, bytes: ByteArray, name: String, state: State) {
         val digest = hash(bytes)
-        if (!state.hashes.add(digest)) {
+        if (digest in state.hashes) {
             state.result.duplicates++
             return
         }
+        require(state.fontEntries < MAX_FONTS) {
+            "The Hindi font library can hold up to $MAX_FONTS font files."
+        }
         val dir = fontDir(context)
         if (!dir.exists() && !dir.mkdirs()) throw IllegalStateException("Could not create the private font folder.")
-        val safe = name.replace(Regex("[^A-Za-z0-9._-]"), "_").takeLast(80).ifBlank { "Hindi-font.ttf" }
-        val ext = safe.substringAfterLast('.', "ttf").lowercase(Locale.ROOT)
+        val safe = name.replace(Regex("[^A-Za-z0-9._-]"), "_").takeLast(80).ifBlank { "Hindi-font" }
         val base = safe.substringBeforeLast('.', safe).ifBlank { "Hindi-font" }
+        // Some document providers give a valid font a UUID or a generic .bin name. Its
+        // signature, not the provider's display name, decides which extension we store,
+        // because customFonts() discovers only .ttf and .otf files.
+        val tag = String(bytes, 0, 4, StandardCharsets.US_ASCII)
+        val ext = if (tag == "OTTO" || tag == "typ1") "otf" else "ttf"
         var target = File(dir, "$base.$ext")
         var suffix = 2
         while (target.exists()) {
@@ -191,10 +194,12 @@ internal object HindiFontStore {
             suffix++
         }
         FileOutputStream(target).use { it.write(bytes) }
-        if (runCatching { Typeface.createFromFile(target) }.isSuccess) state.result.imported++
-        else {
+        if (runCatching { Typeface.createFromFile(target) }.isSuccess) {
+            state.hashes.add(digest)
+            state.fontEntries++
+            state.result.imported++
+        } else {
             target.delete()
-            state.hashes.remove(digest)
             state.result.invalid++
         }
     }
@@ -309,8 +314,20 @@ internal object HindiFontStore {
         }
     }
 
-    private fun quote(value: String): String =
-        "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "") + "\""
+    private fun quote(value: String): String = buildString {
+        append('"')
+        value.forEach { character ->
+            when {
+                character == '\\' -> append("\\\\")
+                character == '"' -> append("\\\"")
+                character.code == 0 -> append("\\fffd ")
+                character.code < 0x20 || character.code == 0x7f ->
+                    append('\\').append(character.code.toString(16)).append(' ')
+                else -> append(character)
+            }
+        }
+        append('"')
+    }
 
     private fun isFont(bytes: ByteArray): Boolean {
         if (bytes.size < 4) return false

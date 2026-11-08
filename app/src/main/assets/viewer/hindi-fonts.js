@@ -20,7 +20,15 @@
         });
         if (!hasDirectHindi) return;
         var current = getComputedStyle(element).fontFamily;
-        element.style.fontFamily = current + ", " + defaultFont + ", 'Noto Sans Devanagari', sans-serif";
+        var preferred = defaultFont || "'Noto Sans Devanagari'";
+        var fallback = current && current !== preferred ? ", " + current : "";
+        // The selected Hindi face must come first; otherwise an SVG chart's embedded
+        // font always wins and the Font Center selection has no effect on chart labels.
+        element.style.setProperty(
+          "font-family",
+          preferred + fallback + ", 'Noto Sans Devanagari', sans-serif",
+          "important"
+        );
         element.setAttribute("data-fz-font", "1");
       });
       var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
