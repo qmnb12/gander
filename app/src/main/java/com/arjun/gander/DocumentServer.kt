@@ -66,7 +66,8 @@ internal class DocumentServer(
             if (url.path == "/assets/viewer/hindi-fonts.css") {
                 val css = HindiFontStore.css(context).toByteArray(Charsets.UTF_8)
                 return WebResourceResponse(
-                    "text/css", "utf-8", mapOf("Cache-Control" to "no-store"),
+                    "text/css", "utf-8", 200, "OK",
+                    mapOf("Cache-Control" to "no-store"),
                     ByteArrayInputStream(css)
                 ).withViewerPolicy()
             }
