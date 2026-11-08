@@ -151,8 +151,12 @@ class HindiFontCenterActivity : AppCompatActivity() {
             results.addView(card, params)
 
             val name = TextView(this).apply {
-                text = font.title + getString(
-                    if (font.bundled) R.string.hindi_font_built_in else R.string.hindi_font_imported
+                text = getString(
+                    R.string.hindi_font_name_status,
+                    font.title,
+                    getString(
+                        if (font.bundled) R.string.hindi_font_built_in else R.string.hindi_font_imported
+                    )
                 )
                 textSize = 15f
                 setTextColor(0xFFF4F6F7.toInt())

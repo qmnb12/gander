@@ -227,6 +227,7 @@
         <item quantity="one">%1$d font · %2$d built-in Unicode</item>
         <item quantity="other">%1$d fonts · %2$d built-in Unicode</item>
     </plurals>
+    <string name="hindi_font_name_status">%1$s%2$s</string>
     <string name="hindi_font_built_in"> · Built-in</string>
     <string name="hindi_font_imported"> · Imported</string>
     <string name="hindi_font_detail">%1$s  (%2$s)</string>
