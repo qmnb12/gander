@@ -129,9 +129,11 @@ class HindiFontCenterActivity : AppCompatActivity() {
         }
         val selected = HindiFontStore.defaultFamily(this)
         val count = TextView(this).apply {
-            text = getString(
-                R.string.hindi_font_count,
-                fonts.size, HindiFontStore.bundledFonts().size
+            text = resources.getQuantityString(
+                R.plurals.hindi_font_count,
+                fonts.size,
+                fonts.size,
+                HindiFontStore.bundledFonts().size
             )
             setTextColor(0xFF9EABB3.toInt())
             textSize = 12f
