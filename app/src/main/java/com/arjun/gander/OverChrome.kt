@@ -45,7 +45,7 @@ internal class OverChrome(
     /** How every other viewer keeps clear of the phone's bars, put back by [land]. */
     private val keepClear: (View) -> Unit,
     /** The colour of the strip the title bar sits on, or null for the night bar's black. */
-    @ColorInt private val ground: Int? = null,
+    @param:ColorInt private val ground: Int? = null,
     /** A finger put down on the title bar. */
     private val touched: () -> Unit = {},
     /**
