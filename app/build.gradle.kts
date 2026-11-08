@@ -89,7 +89,7 @@ val downloadHindiFonts = tasks.register("downloadHindiFonts") {
 
 
 extensions.configure<com.android.build.api.dsl.ApplicationExtension> {
-    sourceSets.getByName("main").assets.directories.add(hindiFontAssets)
+    sourceSets.getByName("main").assets.directories.add(hindiFontAssets.get().asFile.absolutePath)
     namespace = "com.arjun.gander"
     compileSdk = 36
 
