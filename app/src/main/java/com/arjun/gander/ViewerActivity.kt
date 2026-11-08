@@ -1916,6 +1916,7 @@ open class ViewerActivity : AppCompatActivity() {
         // the type here, and the length before the page loads, below, since that is a
         // round trip to the provider.
         val server = DocumentServer(
+            this,
             contentResolver,
             WebViewAssetLoader.Builder()
                 .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))

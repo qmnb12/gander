@@ -16,6 +16,13 @@ Source: https://github.com/mokshablr/gander
 
 Released under the MIT Licence, the full text of which appears below.
 
+## Hindi typefaces
+
+The app bundles Noto Sans Devanagari, Noto Serif Devanagari, Mukta, Hind, Tiro
+Devanagari Hindi, Kalam, Sahitya, Martel, Baloo 2, Khand, Gotu and Glegoo.
+They are distributed under the SIL Open Font License 1.1. The full OFL notice
+for each family is bundled in `viewer/fonts/licenses/` inside the APK.
+
 ## Bundled libraries
 
 | Project | Version | Licence |

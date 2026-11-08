@@ -135,6 +135,7 @@
     <string name="open_with_hint">Tip: in your file manager, tap any file and choose Open\u00A0with\u00A0&gt;\u00A0Gander.</string>
     <string name="back">Back</string>
     <string name="about_gander">About Gander</string>
+    <string name="hindi_fonts">Hindi fonts</string>
     <!-- The two home menu items above About Gander. That one already names the app, so
          these stay short and start with a verb. Rate appears where Google Play installed
          the copy, and Switch to Google Play takes its place anywhere else. -->

@@ -66,6 +66,8 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".HindiFontCenterActivity" android:exported="false" />
+
         <!-- Each file another app opens gets a card of its own in the recent apps screen, rather
              than opening inside that app's card (#46). The card goes when the file is closed,
              and none survives a reboot, because the sender's read grant doesn't either. -->

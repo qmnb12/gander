@@ -1,4 +1,7 @@
 import com.android.build.api.artifact.SingleArtifact
+import java.net.HttpURLConnection
+import java.net.URL
+import java.security.MessageDigest
 
 plugins {
     id("com.android.application")
@@ -6,7 +9,88 @@ plugins {
     id("org.jlleitschuh.gradle.ktlint")
 }
 
+val hindiFontAssets = layout.buildDirectory.dir("generated/assets/hindiFonts")
+val googleFontsCommit = "86aced91de05cd4f96a06838124cca45be337b2b"
+val bundledHindiFonts = listOf(
+    Triple("notosansdevanagari", "NotoSansDevanagari[wdth,wght].ttf", "NotoSansDevanagari-VF.ttf|641944|163f04bddc5a96fc523e4080466cac5c588f6594"),
+    Triple("notoserifdevanagari", "NotoSerifDevanagari[wdth,wght].ttf", "NotoSerifDevanagari-VF.ttf|757692|3d90da279fe70b5017d9b51f58772f0c9ea4146e"),
+    Triple("mukta", "Mukta-Regular.ttf", "Mukta-Regular.ttf|432248|ccb22cfb2cbc43cd516d6376492ad6dde3a94c2f"),
+    Triple("mukta", "Mukta-Bold.ttf", "Mukta-Bold.ttf|418416|d7256f58bd2f8344c494e0df3be08dcd00d348c8"),
+    Triple("hind", "Hind-Regular.ttf", "Hind-Regular.ttf|299532|d354dbbcd295b1b7e09b015f0bd490864ad47aca"),
+    Triple("hind", "Hind-Bold.ttf", "Hind-Bold.ttf|286604|4469b8415f1dcbced9dfc3f2bb24e2f2f2618c5d"),
+    Triple("tirodevanagarihindi", "TiroDevanagariHindi-Regular.ttf", "TiroDevanagariHindi-Regular.ttf|423224|9a55b8c823496ca170aad4c4fced67891541fff0"),
+    Triple("tirodevanagarihindi", "TiroDevanagariHindi-Italic.ttf", "TiroDevanagariHindi-Italic.ttf|425636|b0a5bd9916bf6d912ce75bee30c24d9db42e5c41"),
+    Triple("kalam", "Kalam-Regular.ttf", "Kalam-Regular.ttf|427360|0c956a29348e69bff24a1ae8952fd0b42569311c"),
+    Triple("sahitya", "Sahitya-Regular.ttf", "Sahitya-Regular.ttf|261652|be1a414eff64e0ba15e8eb5852f35a66da2923c9"),
+    Triple("sahitya", "Sahitya-Bold.ttf", "Sahitya-Bold.ttf|267140|c9f249fcc9f4664f439c159ac1ac720a1624c416"),
+    Triple("martel", "Martel-Regular.ttf", "Martel-Regular.ttf|170196|7bd3ef19172c35f443476ce5657e1247c614ca66"),
+    Triple("baloo2", "Baloo2[wght].ttf", "Baloo2-VF.ttf|683200|bc1b9f1191c0d6d23cb2ce0af66aba82ddbf8d6c"),
+    Triple("khand", "Khand-Regular.ttf", "Khand-Regular.ttf|316808|0d8e9536f19b4a9842d95b699c33b7ac40f433cb"),
+    Triple("gotu", "Gotu-Regular.ttf", "Gotu-Regular.ttf|697792|8182906d0266999a9df466a5370a2a9a06935fea"),
+    Triple("glegoo", "Glegoo-Regular.ttf", "Glegoo-Regular.ttf|271368|388d1fe3c0985cabbf04eb5977fc6e6d0c553345")
+)
+val bundledHindiFontLicenses = listOf(
+    Triple("notosansdevanagari", "Noto-Sans-Devanagari-OFL.txt", "4386|cd2cc5c94b4151933eba6ee508e3975274d6fa07"),
+    Triple("notoserifdevanagari", "Noto-Serif-Devanagari-OFL.txt", "4386|cd2cc5c94b4151933eba6ee508e3975274d6fa07"),
+    Triple("mukta", "Mukta-OFL.txt", "4367|12057d5a1c20c7476c62a7509756036dc6fb6ed8"),
+    Triple("hind", "Hind-OFL.txt", "4373|6dd809659a8ccace7ccee108d024d33cd4f936da"),
+    Triple("tirodevanagarihindi", "Tiro-Devanagari-Hindi-OFL.txt", "4387|9acb0fd8b8e54a98007113da015d33419180ca05"),
+    Triple("kalam", "Kalam-OFL.txt", "4373|6dd809659a8ccace7ccee108d024d33cd4f936da"),
+    Triple("sahitya", "Sahitya-OFL.txt", "4393|6dc46a4ed56ad2d3fc10295f7253c646ec468d98"),
+    Triple("martel", "Martel-OFL.txt", "4436|8b5d372e76d3aec70a2c8debef29f4b9c8c98c30"),
+    Triple("baloo2", "Baloo-2-OFL.txt", "4384|72adb492d4f0ede2a9dbdefed607f33ad3a6fc68"),
+    Triple("khand", "Khand-OFL.txt", "4373|6dd809659a8ccace7ccee108d024d33cd4f936da"),
+    Triple("gotu", "Gotu-OFL.txt", "4349|2d2aa47cca45768c93b3a9b65752f7b7b9163587"),
+    Triple("glegoo", "Glegoo-OFL.txt", "4446|838d39e3aabb5e99b6163cd3ce4d1cb585444ef6")
+)
+val downloadHindiFonts = tasks.register("downloadHindiFonts") {
+    outputs.dir(hindiFontAssets)
+    doLast {
+        val root = hindiFontAssets.get().asFile
+        fun download(path: String, target: java.io.File, size: Long, expectedSha: String) {
+            fun blobSha(bytes: ByteArray): String {
+                val digest = MessageDigest.getInstance("SHA-1")
+                digest.update(("blob " + bytes.size + "\u0000").toByteArray(Charsets.UTF_8))
+                return digest.digest(bytes).joinToString("") { "%02x".format(it) }
+            }
+            if (target.isFile && target.length() == size &&
+                runCatching { blobSha(target.readBytes()) == expectedSha }.getOrDefault(false)
+            ) return
+            val encoded = path.replace("[", "%5B").replace("]", "%5D")
+            val connection = URL(
+                "https://raw.githubusercontent.com/google/fonts/" + googleFontsCommit + "/" + encoded
+            ).openConnection() as HttpURLConnection
+            connection.connectTimeout = 20000
+            connection.readTimeout = 45000
+            try {
+                connection.connect()
+                if (connection.responseCode != HttpURLConnection.HTTP_OK) {
+                    throw GradleException("Could not download Hindi font asset: " + path)
+                }
+                val bytes = connection.inputStream.use { it.readBytes() }
+                if (bytes.size.toLong() != size || blobSha(bytes) != expectedSha) {
+                    throw GradleException("Hindi font checksum failed: " + path)
+                }
+                target.parentFile.mkdirs()
+                target.writeBytes(bytes)
+            } finally {
+                connection.disconnect()
+            }
+        }
+        bundledHindiFonts.forEach { (family, file, details) ->
+            val (output, size, sha) = details.split("|")
+            download("ofl/" + family + "/" + file, root.resolve("viewer/fonts/" + output), size.toLong(), sha)
+        }
+        bundledHindiFontLicenses.forEach { (family, output, details) ->
+            val (size, sha) = details.split("|")
+            download("ofl/" + family + "/OFL.txt", root.resolve("viewer/fonts/licenses/" + output), size.toLong(), sha)
+        }
+    }
+}
+
+
 android {
+    sourceSets.getByName("main").assets.srcDir(hindiFontAssets)
     namespace = "com.arjun.gander"
     compileSdk = 36
 
@@ -171,6 +255,8 @@ android {
         getByName("androidTest") { assets.srcDir("../tests/fixtures/files") }
     }
 }
+
+tasks.named("preBuild").configure { dependsOn(downloadHindiFonts) }
 
 // Requesting nothing is the whole promise, but permissions arrive transitively: Media3 contributes
 // ACCESS_NETWORK_STATE, stripped in the manifest. Naming one permission there does not stop the next

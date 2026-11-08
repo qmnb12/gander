@@ -26,6 +26,7 @@
         android:id="@+id/action_share_app"
         android:title="@string/share_app"
         app:showAsAction="never" />
+    <item android:id="@+id/action_hindi_fonts" android:title="@string/hindi_fonts" app:showAsAction="never" />
     <item
         android:id="@+id/action_about"
         android:title="@string/about_gander"

@@ -20,6 +20,7 @@ internal const val ASSET_HOST = "appassets.androidplatform.net"
  * own.
  */
 internal class DocumentServer(
+    private val context: Context,
     private val resolver: ContentResolver,
     private val assets: WebViewAssetLoader,
     private val uri: Uri,
@@ -60,6 +61,20 @@ internal class DocumentServer(
             url.path == PicturesBeside.PATH
         ) {
             return picturesBeside.respond(url.getQueryParameter("path")) ?: notFound()
+        }
+        if (url.scheme == "https" && url.host == ASSET_HOST) {
+            if (url.path == "/assets/viewer/hindi-fonts.css") {
+                val css = HindiFontStore.css(context).toByteArray(Charsets.UTF_8)
+                return WebResourceResponse(
+                    "text/css", "utf-8", mapOf("Cache-Control" to "no-store"),
+                    ByteArrayInputStream(css)
+                ).withViewerPolicy()
+            }
+            if (url.path?.startsWith("/fonts/custom/") == true) {
+                val file = HindiFontStore.customFile(context, url.lastPathSegment.orEmpty()) ?: return notFound()
+                val type = if (file.extension.equals("otf", true)) "font/otf" else "font/ttf"
+                return WebResourceResponse(type, "binary", file.inputStream()).withViewerPolicy()
+            }
         }
         return assets.shouldInterceptRequest(url)?.withViewerPolicy() ?: when (url.scheme) {
             // Anything else a page asks the network for is answered here, with

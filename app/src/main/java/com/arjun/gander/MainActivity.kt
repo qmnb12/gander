@@ -166,6 +166,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.action_filter -> { showFilterDialog(); true }
                 R.id.action_play -> { openPlayListing(); true }
                 R.id.action_share_app -> { shareGander(); true }
+                R.id.action_hindi_fonts -> { startActivity(Intent(this, HindiFontCenterActivity::class.java)); true }
                 R.id.action_about -> { showAbout(); true }
                 else -> false
             }
@@ -475,6 +476,7 @@ class MainActivity : AppCompatActivity() {
         toolbar.menu.findItem(R.id.action_play)?.isVisible = !inFolder
         toolbar.menu.findItem(R.id.action_share_app)?.isVisible = !inFolder
         toolbar.menu.findItem(R.id.action_about)?.isVisible = !inFolder
+        toolbar.menu.findItem(R.id.action_hindi_fonts)?.isVisible = !inFolder
 
         val filterSummary = if (inFolder && activeFilters.isNotEmpty()) {
             SUPPORTED_FILTER_TYPES
