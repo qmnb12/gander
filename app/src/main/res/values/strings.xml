@@ -219,4 +219,16 @@
     <string name="filter_txt">Text and code</string>
     <string name="filter_model">3D models</string>
     <string name="filter_archive">Archives</string>
+
+    <!-- Hindi Font Center -->
+    <string name="hindi_font_import_summary">Imported %1$d · Duplicates %2$d · Invalid %3$d · Other files %4$d</string>
+    <string name="hindi_font_count">%1$d fonts · %2$d built-in Unicode</string>
+    <string name="hindi_font_built_in"> · Built-in</string>
+    <string name="hindi_font_imported"> · Imported</string>
+    <string name="hindi_font_detail">%1$s  (%2$s)</string>
+    <string name="hindi_font_preferred">Preferred Hindi font: %1$s</string>
+    <string name="hindi_font_remove">Remove</string>
+    <string name="hindi_font_removed">Removed %1$s</string>
+    <string name="hindi_font_show_more">Show more fonts</string>
+    <string name="hindi_font_no_match">No fonts match this search.</string>
 </resources>
