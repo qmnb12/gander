@@ -11,6 +11,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.content.res.AppCompatResources
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import java.util.concurrent.Executors
@@ -40,7 +41,7 @@ class HindiFontCenterActivity : AppCompatActivity() {
         val toolbar = MaterialToolbar(this).apply {
             title = "Hindi Font Center"
             setTitleTextColor(0xFFF4F6F7.toInt())
-            navigationIcon = getDrawable(R.drawable.ic_back)
+            navigationIcon = AppCompatResources.getDrawable(this@HindiFontCenterActivity, R.drawable.ic_back)
             setNavigationOnClickListener { finish() }
         }
         root.addView(toolbar)
