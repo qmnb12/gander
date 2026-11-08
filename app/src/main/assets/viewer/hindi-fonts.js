@@ -7,7 +7,7 @@
   var queued = false;
   function scan() {
     queued = false;
-    var roots = ["container", "sheet", "result"].map(function (id) {
+    var roots = ["container", "sheet", "result", "content"].map(function (id) {
       return document.getElementById(id);
     }).filter(Boolean);
     roots.forEach(function (root) {

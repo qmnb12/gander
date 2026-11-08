@@ -62,3 +62,21 @@ def test_text_added_later_to_a_spreadsheet_root_also_gets_the_font(page):
     page.wait_for_function("() => document.querySelector('#sheet .fz-hindi-run')")
 
     assert page.locator("#sheet .fz-hindi-run").text_content() == "नमस्ते"
+
+def test_generic_content_root_gets_the_preferred_font(page):
+    load_font_script(page, '<article id="content">English हिन्दी</article>')
+    page.wait_for_function("() => document.querySelector('#content .fz-hindi-run')")
+
+    run = page.locator("#content .fz-hindi-run")
+    assert run.text_content() == "हिन्दी"
+    family = run.evaluate("node => getComputedStyle(node).fontFamily")
+    assert family.split(",", 1)[0].strip().strip("\\\"'") == "Mukta"
+
+
+def test_prose_markdown_and_text_viewers_load_the_hindi_font_pipeline():
+    viewer_dir = FONT_SCRIPT.parent
+    for page_name in ("prose.html", "md.html", "text.html"):
+        markup = (viewer_dir / page_name).read_text(encoding="utf-8")
+        assert 'href="hindi-fonts.css"' in markup
+        assert '<script src="hindi-fonts.js"></script>' in markup
+
